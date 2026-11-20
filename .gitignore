@@ -1,0 +1,26 @@
+# Entornos virtuales (obligatorio E4/E5 del TP)
+venv/
+.venv/
+
+# Caché de Python (obligatorio E4/E5 del TP)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caché de herramientas
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Apuntes personales / material que no es del entregable
+machete.md
+*.pdf
+.env
