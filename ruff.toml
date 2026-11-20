@@ -1,0 +1,4 @@
+exclude = ["venv"]
+
+[lint]
+ignore = ["TRY004"]
