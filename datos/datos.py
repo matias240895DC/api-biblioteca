@@ -120,10 +120,7 @@ class Datos:
         return Response(status_code=204)
 
     def actualizar_libro_parcial(self, id: int, libro: LibroParametros) -> Libro:
-
         libro_existente = self.obtener_libro_por_id(id)
-        if libro.titulo and self.buscar_libro_por_titulo(libro.titulo, id):
-            raise HTTPException(status_code=409, detail="El nombre del libro ya existe")
         datos = libro.model_dump(exclude_unset=True)
         for campo, valor in datos.items():
             setattr(libro_existente, campo, valor)

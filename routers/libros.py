@@ -2,8 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
 
+from config.response import Response as ErrorResponse, ResponseGetById
+from config.response import ResponseGet
 from datos.datos import Datos
-from datos.schemas.error import error_responses
 from datos.schemas.schemas import (
     Libro,
     LibroCreate,
@@ -28,7 +29,14 @@ def read_root():
     status_code=201,
     description="Crear un nuevo libro",
     responses={
-        **error_responses,
+        409: ErrorResponse(detail="El autor y el nombre del libro ya existe").error409(
+            detail="El autor y el nombre del libro ya existe",
+            description="Ya existe un libro con el mismo título y autor",
+        ),
+        422: ErrorResponse(detail="Datos inválidos").error422(
+            description="Datos inválidos"
+        ),
+        201: ErrorResponse.post_response(),
     },
 )
 def crear_libro(libro: LibroCreate) -> Libro:
@@ -40,7 +48,7 @@ def crear_libro(libro: LibroCreate) -> Libro:
     response_model=LibrosPaginados,
     description="Obtener todos los libros",
     responses={
-        422: error_responses[422],
+        422: ResponseGet(detail="Query params inválidos").error422(),
     },
 )
 def obtener_libros(
@@ -63,8 +71,8 @@ def obtener_estadisticas_libros() -> dict[str, int]:
     response_model=Libro,
     description="Obtener un libro por su id",
     responses={
-        404: error_responses[404],
-        422: error_responses[422],
+        404: ResponseGetById(detail="El libro no existe").error404(),
+        422: ResponseGetById(detail="Path param 'id' inválido").error422(),
     },
 )
 def obtener_libro_por_id(id: int) -> Libro:
@@ -76,8 +84,8 @@ def obtener_libro_por_id(id: int) -> Libro:
     status_code=204,
     description="Eliminar un libro por su id",
     responses={
-        404: error_responses[404],
-        422: error_responses[422],
+        404: ErrorResponse(detail="El libro no existe").error404(),
+        422: ResponseGetById(detail="Path param 'id' inválido").error422(),
     },
 )
 def eliminar_libro(id: int) -> Response:
@@ -87,9 +95,21 @@ def eliminar_libro(id: int) -> Response:
 @router.patch(
     "/libros/{id}",
     response_model=Libro,
-    description="Actualizar un libro por su id",
+    description=(
+        "Actualización parcial: solo se modifican los campos enviados. "
+        "Un body vacío {} deja el libro igual (200)."
+    ),
     responses={
-        **error_responses,
+        404: ErrorResponse(detail="El libro no existe").error404(
+            detail="El libro no existe",
+            description="No hay libro con ese path param 'id'",
+        ),
+        422: ResponseGetById(detail="Datos inválidos").error422(
+            description=(
+                "Path 'id' inválido (no entero o <= 0) "
+                "o body con campos de tipo incorrecto"
+            ),
+        ),
     },
 )
 def actualizar_libro_parcial(id: int, libro: LibroParametros) -> Libro:
@@ -99,9 +119,28 @@ def actualizar_libro_parcial(id: int, libro: LibroParametros) -> Libro:
 @router.put(
     "/libros/{id}",
     response_model=Libro,
-    description="Actualizar un libro por su id",
+    description=(
+        "Reemplazo total del libro (titulo, autor, anio; disponible opcional). "
+        "Mantiene el mismo id."
+    ),
     responses={
-        **error_responses,
+        404: ErrorResponse(detail="El libro no existe").error404(
+            detail="El libro no existe",
+            description="No hay libro con ese path param 'id'",
+        ),
+        422: ResponseGetById(detail="Datos inválidos").error422(
+            description=(
+                "Path 'id' inválido o body inválido "
+                "(mismas reglas que POST: titulo, autor, anio)"
+            ),
+        ),
+        409: ErrorResponse(detail="El autor y el nombre del libro ya existe").error409(
+            detail="El autor y el nombre del libro ya existe",
+            description=(
+                "Otro libro (id distinto) ya tiene el mismo titulo y autor. "
+                "Se compara sin distinguir mayúsculas."
+            ),
+        ),
     },
 )
 def actualizar_libro_total(id: int, libro: LibroCreate) -> Libro:
@@ -111,10 +150,19 @@ def actualizar_libro_total(id: int, libro: LibroCreate) -> Libro:
 @router.post(
     "/libros/{id}/prestar",
     response_model=Libro,
-    description="Prestar un libro por su id",
+    description="Marca el libro como prestado (disponible = false).",
     responses={
-        404: error_responses[404],
-        422: error_responses[422],
+        404: ErrorResponse(detail="El libro no existe").error404(
+            detail="El libro no existe",
+            description="No hay libro con ese path param 'id'",
+        ),
+        422: ResponseGetById(detail="id inválido").error422(
+            description="Path key 'id' inválido (no entero o <= 0)",
+        ),
+        409: ErrorResponse(detail="El libro no está disponible").error409(
+            detail="El libro con el titulo: ... no está disponible",
+            description="Conflicto: el libro ya estaba prestado (disponible = false)",
+        ),
     },
 )
 def prestar_libro(id: int) -> Libro:
@@ -124,10 +172,19 @@ def prestar_libro(id: int) -> Libro:
 @router.post(
     "/libros/{id}/devolver",
     response_model=Libro,
-    description="Devolver un libro por su id",
+    description="Marca el libro como disponible (disponible = true).",
     responses={
-        404: error_responses[404],
-        422: error_responses[422],
+        404: ErrorResponse(detail="El libro no existe").error404(
+            detail="El libro no existe",
+            description="No hay libro con ese path param 'id'",
+        ),
+        422: ResponseGetById(detail="id inválido").error422(
+            description="Path key 'id' inválido (no entero o <= 0)",
+        ),
+        409: ErrorResponse(detail="El libro ya está disponible").error409(
+            detail="El libro con el titulo: ... ya está disponible",
+            description="Conflicto: el libro ya estaba disponible (disponible = true)",
+        ),
     },
 )
 def devolver_libro(id: int) -> Libro:
