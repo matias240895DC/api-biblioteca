@@ -13,18 +13,19 @@ from datos.schemas.schemas import (
     LibrosPaginados,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["Biblioteca"])
 # Instancia de la clase Datos para usar en el router
 datos = Datos()
 
 
-@router.get("/")
+@router.get("/", summary="Obtener la API de la biblioteca")
 def read_root():
     return {"mensaje": "API de la biblioteca"}
 
 
 @router.post(
     "/libros",
+    summary="Crear un nuevo libro",
     response_model=Libro,
     status_code=201,
     description="Crear un nuevo libro",
@@ -45,6 +46,7 @@ def crear_libro(libro: LibroCreate) -> Libro:
 
 @router.get(
     "/libros",
+    summary="Obtener todos los libros",
     response_model=LibrosPaginados,
     description="Obtener todos los libros",
     responses={
@@ -59,6 +61,7 @@ def obtener_libros(
 
 @router.get(
     "/libros/estadisticas",
+    summary="Obtener las estadísticas de los libros",
     response_model=dict[str, int],
     description="Obtener las estadísticas de los libros",
 )
@@ -68,6 +71,7 @@ def obtener_estadisticas_libros() -> dict[str, int]:
 
 @router.get(
     "/libros/{id}",
+    summary="Obtener un libro por su id",
     response_model=Libro,
     description="Obtener un libro por su id",
     responses={
@@ -81,6 +85,7 @@ def obtener_libro_por_id(id: int) -> Libro:
 
 @router.delete(
     "/libros/{id}",
+    summary="Eliminar un libro por su id",
     status_code=204,
     description="Eliminar un libro por su id",
     responses={
@@ -94,6 +99,7 @@ def eliminar_libro(id: int) -> Response:
 
 @router.patch(
     "/libros/{id}",
+    summary="Actualizar parcialmente un libro por su id",
     response_model=Libro,
     description=(
         "Actualización parcial: solo se modifican los campos enviados. "
@@ -118,6 +124,7 @@ def actualizar_libro_parcial(id: int, libro: LibroParametros) -> Libro:
 
 @router.put(
     "/libros/{id}",
+    summary="Actualizar totalmente un libro por su id",
     response_model=Libro,
     description=(
         "Reemplazo total del libro (titulo, autor, anio; disponible opcional). "
@@ -149,6 +156,7 @@ def actualizar_libro_total(id: int, libro: LibroCreate) -> Libro:
 
 @router.post(
     "/libros/{id}/prestar",
+    summary="Prestar un libro por su id",
     response_model=Libro,
     description="Marca el libro como prestado (disponible = false).",
     responses={
@@ -171,6 +179,7 @@ def prestar_libro(id: int) -> Libro:
 
 @router.post(
     "/libros/{id}/devolver",
+    summary="Devolver un libro por su id",
     response_model=Libro,
     description="Marca el libro como disponible (disponible = true).",
     responses={
