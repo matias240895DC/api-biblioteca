@@ -2,8 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
 
-from config.response import Response as ErrorResponse, ResponseGetById
-from config.response import ResponseGet
+from config.response import Response as ErrorResponse
+from config.response import ResponseGet, ResponseGetById
 from datos.datos import Datos
 from datos.schemas.schemas import (
     Libro,
